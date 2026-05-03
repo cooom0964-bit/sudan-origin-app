@@ -97,4 +97,16 @@
                 document.getElementById('res').style.display = 'block';
                 btn.innerText = "تم بنجاح ✓";
             } else {
-                const
+                const err = await response.json();
+                alert("خطأ من البوت: " + err.description);
+                btn.disabled = false;
+                btn.innerText = "حاول مرة أخرى";
+            }
+        } catch (e) {
+            alert("تأكد من الاتصال بالإنترنت");
+            btn.disabled = false;
+        }
+    };
+</script>
+</body>
+</html>
